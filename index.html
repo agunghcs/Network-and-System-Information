@@ -1,0 +1,145 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Network and System Information</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+    }
+
+    h1 {
+        color: #333;
+    }
+
+    p {
+        color: #666;
+    }
+
+    #network-info, #system-info {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-bottom: 20px;
+    }
+</style>
+</head>
+<body>
+<h1>Network Information</h1>
+<p id="network-info">Loading...</p>
+
+<h1>System Information</h1>
+<p id="system-info">Loading...</p>
+
+<script>
+window.onload = function() {
+    // Network Information
+    var networkInfo = "IP Address: " + getIPAddress() + "<br>" +
+                      "Hostname: " + window.location.hostname + "<br>" +
+                      "Protocol: " + window.location.protocol;
+    document.getElementById("network-info").innerHTML = networkInfo;
+
+    // System Information
+    var systemInfo = "Browser: " + navigator.userAgent + "<br>" +
+                     "Platform: " + navigator.platform + "<br>" +
+                     "Language: " + navigator.language;
+    document.getElementById("system-info").innerHTML = systemInfo;
+
+    // Date Information
+    var currentTime = new Date();
+    var timeInfo = "Current Time: " + currentTime.toLocaleString();
+    document.getElementById("system-info").innerHTML += "<br>" + timeInfo;
+};
+
+// Function to get IP Address
+function getIPAddress() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'https://ipinfo.io/json', true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var response = JSON.parse(xhr.responseText);
+            var ip = response.ip ? response.ip : 'Not Available';
+            document.getElementById("network-info").innerHTML = "IP Address: " + ip;
+        } else {
+            document.getElementById("network-info").innerHTML = "Failed to get IP address";
+        }
+    };
+    xhr.send();
+}
+
+// Function to get user's location
+function getLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showLocation, showError);
+    } else {
+        document.getElementById("system-info").innerHTML += "<br>Location: Geolocation is not supported by this browser.";
+    }
+}
+
+// Callback function to display location
+function showLocation(position) {
+    var latitude = position.coords.latitude;
+    var longitude = position.coords.longitude;
+    var locationInfo = "Location: Latitude " + latitude + ", Longitude " + longitude;
+    document.getElementById("system-info").innerHTML += "<br>" + locationInfo;
+}
+
+// Error function in case of geolocation error
+function showError(error) {
+    switch(error.code) {
+        case error.PERMISSION_DENIED:
+            document.getElementById("system-info").innerHTML += "<br>Location: User denied the request for Geolocation.";
+            break;
+        case error.POSITION_UNAVAILABLE:
+            document.getElementById("system-info").innerHTML += "<br>Location: Location information is unavailable.";
+            break;
+        case error.TIMEOUT:
+            document.getElementById("system-info").innerHTML += "<br>Location: The request to get user location timed out.";
+            break;
+        case error.UNKNOWN_ERROR:
+            document.getElementById("system-info").innerHTML += "<br>Location: An unknown error occurred.";
+            break;
+    }
+}
+
+// Call the getLocation function to get user's location
+getLocation();
+
+// Function to get internet speed
+function getInternetSpeed() {
+    var speedTest = new SpeedTest();
+    speedTest.download(function(speed) {
+        var speedInfo = "Internet Speed: " + speed + " Mbps";
+        document.getElementById("network-info").innerHTML += "<br>" + speedInfo;
+    });
+}
+
+// Class to perform speed test
+class SpeedTest {
+    constructor() {
+        this.xhr = new XMLHttpRequest();
+    }
+
+    download(callback) {
+        var startTime, endTime;
+        this.xhr.open('GET', 'https://eu.httpbin.org/stream-bytes/1024000', true); // Download a 1MB file
+        this.xhr.onreadystatechange = function() {
+            if (this.readyState === 2) {
+                startTime = performance.now();
+            } else if (this.readyState === 4) {
+                endTime = performance.now();
+                var duration = (endTime - startTime) / 1000; // Convert to seconds
+                var speed = (1024 / duration).toFixed(2); // Calculate speed in Mbps
+                callback(speed);
+            }
+        };
+        this.xhr.send();
+    }
+}
+
+// Call the getInternetSpeed function to get internet speed
+getInternetSpeed();
+</script>
+</body>
+</html>
